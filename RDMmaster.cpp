@@ -8,6 +8,8 @@ byte dmx_data[513]; //Til at gemme de nuværende DMX data slots
 unsigned int dmx_data_slots = 0;  //Angiver hvor mange slots der anvendes i DMX512 framen
 char print_line[100]; //Til temp print line 
 
+RDMmasterClass RDM;
+
 RDMmasterClass::RDMmasterClass(){}
 
 // Init pin configurations
@@ -17,7 +19,6 @@ void RDMmasterClass::initPins()
   pinMode(rdmRx, INPUT_PULLUP);
   pinMode(rs485DriverEnable, OUTPUT);
   pinMode(rs485RecieverEnable, OUTPUT);
-
   digitalWrite(rdmTx, HIGH);  //Idle dmx er høj i mark before break (MBB)
   digitalWrite(rs485DriverEnable, HIGH);  //Active high
   digitalWrite(rs485RecieverEnable, HIGH);  //Active low 
@@ -124,7 +125,7 @@ int RDMmasterClass::getFixtureMode()
   digitalWrite(rs485DriverEnable, HIGH);  //Active high
   digitalWrite(rs485RecieverEnable, HIGH);  //Active low 
     
-  calculate_rdm_checksum(true, false, false);  //Checksum udregnes og indsættes i globalt rdm_data_tx array  
+  calculate_rdm_checksum(true, false);  //Checksum udregnes og indsættes i globalt rdm_data_tx array  
   
   //Break i minimum 176 us
   digitalWrite(rdmTx, LOW);
@@ -181,7 +182,7 @@ int RDMmasterClass::getDMXAdress()
   
 }
 
-boolean RDMmasterClass::calculate_rdm_checksum(boolean tx_flag, boolean rx_flag, boolean disc_rx_flag)
+boolean RDMmasterClass::calculate_rdm_checksum(boolean tx_flag, boolean rx_flag)
 {
   int index = 0;
   unsigned int checksum = 0;
@@ -213,28 +214,6 @@ boolean RDMmasterClass::calculate_rdm_checksum(boolean tx_flag, boolean rx_flag,
     
     checksum = checksum << 8;
     if (RDMdataRx[RDMdataRx[2] + 1] != (checksum >> 8)) //LSB
-    {
-      return false;
-    }
-    
-    return true;
-  }
-
-  if (disc_rx_flag == true)
-  {
-    while (index < 12)
-    {
-      checksum = checksum + RDMdataRx[index];
-      index++;
-    }
-
-    if ((RDMdataRx[12] & RDMdataRx[13]) != (checksum >> 8)) //MSB
-    {
-      return false;
-    }
-    
-    checksum = checksum << 8;
-    if ((RDMdataRx[14] & RDMdataRx[15]) != (checksum >> 8)) //LSB
     {
       return false;
     }
@@ -355,7 +334,7 @@ boolean RDMmasterClass::RDMrecieve(unsigned int rdm_data_slots)
     return false;
   }
   
-  if (calculate_rdm_checksum(false, true, false) == false)  //Hvis checksum ikke er korrekt
+  if (calculate_rdm_checksum(false, true) == false)  //Hvis checksum ikke er korrekt
   {
     return false;
   }
