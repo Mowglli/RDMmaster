@@ -21,10 +21,10 @@ class RDMmasterClass
     int getFixtureMode();
     void RDMtransmit(unsigned int rdm_data_slots);
     int getDMXAdress();
-    boolean calculate_rdm_checksum(boolean tx_flag, boolean rx_flag, boolean disc_rx_flag);
+    boolean calculate_rdm_checksum(boolean tx_flag, boolean rx_flag);
     boolean RDMrecieve(unsigned int rdm_data_slots);
     void DMXtransmit(unsigned int channel_number, unsigned int channel_value);
 };
-//extern RDMmasterClass RDMmaster;
+extern RDMmasterClass RDM;
 
 #endif
